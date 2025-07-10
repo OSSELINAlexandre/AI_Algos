@@ -38,6 +38,6 @@ generate_kwargs = {
     "return_timestamps": True,
 }
 
-result = pipe("helloWorld.mp3" , generate_kwargs=generate_kwargs)
+result = pipe("chap3.mp3" , generate_kwargs=generate_kwargs)
 print(result["text"])
 
