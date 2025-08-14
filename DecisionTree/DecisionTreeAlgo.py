@@ -23,89 +23,81 @@ def returnColumn(column, dataSet):
     for row in dataSet:
         cell = np.array(row.split(","))
         if cell.size > 1:
-            mySet.append(returnBooleanFromString(cell[column]))
+            mySet.append(cell[column])
     return mySet
 
-
-def calculateGeneralEntropy(scores):
-    yes = 0
-    no = 0
-    for score in scores:
-        if returnBooleanFromString(score) == True:
-            yes +=1
+def numberOfGivenAttribute(attribute, dataSet):
+    mySet = []
+    for row in dataSet:
+        if row == attribute:
+            mySet.append(1)
         else:
-            no +=1
-    yesProbability = yes / len(scores)
-    noProbability = no / len(scores)
-    return -yesProbability * math.log(yesProbability, 2) - noProbability * math.log(noProbability, 2)
+            mySet.append(0)
+    return mySet
 
-def SubGroupEnthropy (indexToCompute, score):
-    yes = 0
-    no = 0
-    finalComputation = 0
-    for index in indexToCompute:
-        if score[index] == True:
-            yes += 1
-        else:
-            no +=1
+def differentAttribute (dataSet):
+    seenGroup = []
+    for row in dataSet:
+        if row not in seenGroup:
+            seenGroup.append(row)
+    return seenGroup
 
-    if yes > 0:
-        yesProbability = yes / len(indexToCompute)
-        finalComputation =+ - (yesProbability * math.log(yesProbability, 2))
-    if no > 0:
-        noProbability = no / len(indexToCompute)
-        finalComputation =+ - (noProbability * math.log(noProbability, 2))
+def numberOfGivenAttribute (aGroup, dataSet):
+    number = 0
+    for row in dataSet:
+        if row == aGroup:
+            number += 1
+    return number
+
+def EntropyForSubGroup (dataSet, decision, aGroup):
+    sample = numberOfGivenAttribute(aGroup, dataSet)
+    positivReac = 0
+    negativReac = 0
+    result = 0
+    for id, row in enumerate (dataSet):
+        if row == aGroup:
+            if returnBooleanFromString (decision[id]):
+                positivReac += 1
+            else:
+                negativReac += 1
+
+    if positivReac > 0:
+        result -= positivReac/sample * math.log(positivReac/sample, 2)
+
+    if negativReac > 0:
+        result -= negativReac / sample * math.log(negativReac/sample, 2)
+
+    return result
+
+def computeAttributeTotalEntropy (allResultsForGroup, totalSamples):
+    totalGroupEntropy = 0
+    for aGroup in allResultsForGroup:
+        totalGroupEntropy =+ totalGroupEntropy + ((aGroup[1][0] / totalSamples) * aGroup[1][1])
+
+    return totalGroupEntropy
 
 
-    return finalComputation
 
-def generalEntropyForGroup (listOfResult, totalSamples):
-    generalEntropy = 0
-    for attributes in listOfResult:
-        generalEntropy += attributes[0]/totalSamples * attributes[0][0]
+def calculateEntropy(attribute, scores, attributeColumn):
 
-    return generalEntropy
+    allResults = []
+    for aGroupOfAttribute in differentAttribute (attributeColumn):
+        infoPerGroup = [ numberOfGivenAttribute(aGroupOfAttribute, attributeColumn),EntropyForSubGroup (attributeColumn, scores, aGroupOfAttribute)]
+        resultForColum = [aGroupOfAttribute, infoPerGroup]
+        allResults.append(resultForColum)
 
-
-def calculateEntropy(indexOfAttr, attributes, scores, attributeColumn):
-    computedAttributes = []
-    computedScoreForAttributes = [[[]]]
-    for attribute in attributes:
-        continueProcessing = True
-        for elem in computedAttributes:
-            if elem == attribute:
-                continueProcessing = False
-
-        if continueProcessing == True:
-            computedAttributes.append(attribute)
-            indexToCompute = []
-            for attr in attributeColumn:
-                if (attr == attribute):
-                    indexToCompute.append(attributes.index(attr))
-
-            print("WhereAreWe => ", computedScoreForAttributes.append(attribute))
-            print("WhereAreWe => ", indexToCompute)
-            print("WhereAreWe => ", SubGroupEnthropy(indexToCompute, scores))
-            computedScoreForAttributes.append(attribute)
-            computedScoreForAttributes[indexOfAttr] = indexToCompute
-            computedScoreForAttributes[indexOfAttr][0] = SubGroupEnthropy(indexToCompute, scores)
-
-    return generalEntropyForGroup (computedScoreForAttributes ,len (scores))
+    return [attribute, computeAttributeTotalEntropy (allResults, len (attributeColumn ))]
 
 
 print("Tree decision processing !")
-attributesScore = returnColumn(len(attributes ) - 1, array)
+attributesScore = returnColumn(len(attributes) - 1, array)
 
-print("== Global Data == ")
-print("=> Array")
-print(array)
-print("=> attributes")
-print(attributes)
-print("=> attributesScore")
-print(attributesScore)
-print("== End Global Data == ")
+attributes = attributes[:-1]
+allResult = []
+for idx, attribute in enumerate (attributes):
+    result = calculateEntropy ( attribute, attributesScore, returnColumn(idx, array))
+    allResult.append(result)
 
-i = 1
-for attributes in attributes:
-    result = calculateEntropy (i, attributes, attributesScore, returnColumn(i, array))
-    i +=1
+allResult.sort (key=lambda a: a[1])
+print("List organized by the most influencial criteria to the least.")
+print(allResult)
