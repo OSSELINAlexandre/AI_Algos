@@ -4,15 +4,13 @@
 #                     https://www.youtube.com/watch?v=VMj-3S1tku0&t=2047s            #
 ######################################################################################
 
-from cProfile import label
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
 from graphviz import Digraph
 import math
 matplotlib.use('TkAgg')
 
 
+#Copied from Micrograd, no reflexion done
 def trace(root):
     nodes, edges = set(), set()
 
@@ -27,11 +25,8 @@ def trace(root):
     return nodes, edges
 
 
+#Copied from Micrograd, no reflexion done
 def draw_dot(root, format='svg', rankdir='LR'):
-    """
-    format: png | svg | ...
-    rankdir: TB (top to bottom graph) | LR (left to right)
-    """
     assert rankdir in ['LR', 'TB']
     nodes, edges = trace(root)
     dot = Digraph(format=format, graph_attr={'rankdir': rankdir})  # , node_attr={'rankdir': 'TB'})
@@ -56,24 +51,56 @@ class Value:
         self.label = label
         self._prev = set(_children)
 
+    def cleanGrad(self):
+        self.grad = 0
+        for child in self._prev:
+            child.cleanGrad()
+
     def __repr__(self):
-        return f"Value(data={self.data},op={self._op})"
+        return f"Value(data={self.data})"
 
     def __add__(self, other):
+        #Need to implement transformation from primitive to Class value, otherwise NeuronNetwork would not work
+        other = other if isinstance(other, Value) else Value (other)
         out = Value(self.data + other.data, (self, other), '+')
         def _backward():
-            print("I should at least be here !")
             self.grad = out.grad
             other.grad = out.grad
         out._backward = _backward
         return out
 
     def __mul__(self, other):
+        #Need to implement transformation from primitive to Class value, otherwise NeuronNetwork would not work
+        other = other if isinstance(other, Value) else Value (other)
         out = Value(self.data * other.data, (self, other), '*')
         def _backward():
             self.grad = other.data * out.grad
             other.grad = self.data * out.grad
         out._backward = _backward
+        return out
+
+    #necessary function to simplify the process in NeuronNetwork for Loss computation and
+    #creation of object that can optimize output based on gradient (tr - out) **2
+    def __rmul__(self, other):
+        return self * other
+
+    def __neg__(self):
+        return self * -1
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __rsub__(self, other):
+        return other + (-self)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __pow__(self, other):
+        out = Value(self.data**other, (self,), f'**{other}')
+        def _backward():
+            self.grad += (other * self.data**(other-1)) * out.grad
+        out._backward = _backward
+
         return out
 
     def tanh(self):
