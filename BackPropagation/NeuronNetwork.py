@@ -53,7 +53,7 @@ class MLP:
 
     def __call__(self, x):
         for layer in self.layers:
-            x = layer(x) # L'entrée de l'un est la sortie de l'autre.
+            x = layer(x) # Layer propagation of the dataset.
         return x
 
     def parameters(self):
