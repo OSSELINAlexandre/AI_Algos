@@ -44,4 +44,25 @@ plt.axis('off')
 plt.title('Occurrences of bigram in dataset', fontsize=20, weight="bold")
 plt.show()
 
+#creation of generator for easier understanding through iteration
+g = torch.Generator().manual_seed(77)
+
+# === Word generator Based on Occurrences ===
+def recursiveWordBulding(id):
+
+    if id == 26:
+        return alphaNumber[id]
+    else:
+        newRow = tens[id, :].float()
+        newRow = newRow / newRow.sum()
+        newId = torch.multinomial(newRow, num_samples=1, replacement=True, generator=g)
+        res = recursiveWordBulding(newId.item())
+        return alphaNumber[id] + res
+
+
+for i in range(50):
+    aRow = tens[26, :].float()
+    aRow = aRow / aRow.sum()  # matrice computation with : M x 1/sum
+    res = torch.multinomial(aRow, num_samples=1, replacement=True, generator=g)
+    print(recursiveWordBulding(res.item()))
 
