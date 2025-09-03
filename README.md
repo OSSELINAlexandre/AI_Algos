@@ -15,9 +15,19 @@ Script that I use to synthetize quicker book that i've read and on which I want 
 
 Decision tree algorithm implementation to detect, based on input, pattern of restaurant choice (exemple base on 'AI : Modern Approach' book)
 
-## BackPropagation
+
+# Andrej Kharparty's tutorial
+
+Tutorials implementation to understand the various concepts of AI, from layer to GPT.
+
+## BackPropagation - Micrograd
 
 Implementation of MultiLayerPerceptron (MLP) to copy XOR function. Based on 
-Andrej Karpathy's micrograd online tutorial (https://www.youtube.com/watch?v=VMj-3S1tku0&t=7827s)
+Andrej Karpathy's micrograd online tutorial (https://www.youtube.com/watch?v=VMj-3S1tku0&t)
 
+
+## Bigram - makeMore
+
+Implementation of two solutions for new name generation based on examples. Based on 
+Andrej Karpathy's makemore online tutorial (https://www.youtube.com/watch?v=VMj-3S1tku0)
 
