@@ -93,9 +93,6 @@ class ModelHolder:
 
         self.finalTrainingLoss = loss.item()
 
-        plt.plot(iter,  lossIteration)
-        plt.savefig(f'interlude_{self._name}.png', dpi=300, bbox_inches='tight')
-
         yEncodingTest = torch.tensor(self._truthTesting)
         contextTensTest = torch.tensor(self._inputTesting, dtype=torch.long)
         embeddingTens = C[contextTensTest]
@@ -105,6 +102,12 @@ class ModelHolder:
         normalizedOutput = outputLayer / torch.sum(outputLayer, 1, keepdim=True)
         self.finalArchivedLoss = (-(normalizedOutput[torch.arange(self.totalTest), yEncodingTest].log().mean())).item()
 
+        plt.plot(iter,  lossIteration)
+        plt.text(0.02, 0.98, f'Loss finale: {self.finalArchivedLoss:.4f}',
+                 transform=plt.gca().transAxes,
+                 verticalalignment='top',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        plt.savefig(f'interlude_{self._name}.png', dpi=300, bbox_inches='tight')
 
 words = open(file="names.txt").read().splitlines()
 sumUp2 = ModelHolder(name="sumupSimilar", embSize=2, batchSize=64, tanhLayerSize=100, numberOfTraining=20000, contextualBlocSize=3)
