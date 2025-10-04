@@ -15,8 +15,9 @@ context = []
 allContext = []
 allContextConverted = []
 output = []
+wordToContextIndex = []
 
-for word in words:
+for i, word in enumerate(words):
     context = size_bloc * ["."]
     wordF = word + "."
     for w in wordF:
@@ -24,6 +25,7 @@ for word in words:
         allContextConverted.append([stoi[c] for c in context])
         output.append(stoi[w])
         context = context[1:] + [w]
+    wordToContextIndex.append([i, len(allContextConverted)])
 
 #Creating the tensors & the architecture
 
