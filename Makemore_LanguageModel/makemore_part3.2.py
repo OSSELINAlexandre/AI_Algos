@@ -1,6 +1,9 @@
 #Interlude : hyperparameters optimizations to compute the best solution
 import torch
 import torch.nn.functional as F
+import math
+from torch.utils.backcompat import keepdim_warning
+
 import Utilities as ut
 import matplotlib.pyplot as plt
 
@@ -32,6 +35,23 @@ class Tanh:
     def parameters(self):
         return []
 
+class BatchNorm1Dim:
+
+    def __init__(self, dimension):
+        self.dim = dimension
+        self.epsilon = 1e-5
+        self.gamma = torch.ones(dimension)
+        self.beta = torch.zeros(dimension)
+        self.running_mean = 0
+        self.running_std = 0
+        self.learning_rate = 0.01
+
+    def __call__(self, x):
+        self.out = self.gamma * ((x - x.mean(0, keepdim=True)) / torch.sqrt(x.var(0, keepdim=True) + self.epsilon)) + self.beta
+        return self.out
+
+    def parameters(self):
+        return [self.gamma, self.beta]
 
 n_bloc_size = 3
 myUtil = ut.Utilies(contextLen=n_bloc_size, sz_train=0.9)
@@ -44,17 +64,17 @@ n_out = 27
 
 C = torch.randn((27, n_embedding))
 
-myNeuralNetwork = [Linear(n_bloc_size * n_embedding , n_hidden), Tanh(),
-                   Linear(n_hidden                  , n_hidden), Tanh(),
-                   Linear(n_hidden                  , n_hidden), Tanh(),
-                   Linear(n_hidden                  , n_hidden), Tanh(),
-                   Linear(n_hidden                  , n_hidden)]
+myNeuralNetwork = [Linear(n_bloc_size * n_embedding , n_hidden), BatchNorm1Dim(n_hidden), Tanh(),
+                   Linear(n_hidden                  , n_hidden), BatchNorm1Dim(n_hidden), Tanh(),
+                   Linear(n_hidden                  , n_hidden), BatchNorm1Dim(n_hidden), Tanh(),
+                   Linear(n_hidden                  , n_hidden), BatchNorm1Dim(n_hidden), Tanh(),
+                   Linear(n_hidden                  , n_out),]
 
 with torch.no_grad():
-    myNeuralNetwork[-1].weight.data *= 0.1
     for layer in myNeuralNetwork:
         if (isinstance(layer, Linear)):
-            layer.weight.data *= 5/3
+            layer.weight.data *= 5/3  #Copy of Kaiming init
+    myNeuralNetwork[-1].weight.data *= 0.1
 
 parameters = [C] + [p for layer in myNeuralNetwork for p in layer.parameters()]
 lossi = []
